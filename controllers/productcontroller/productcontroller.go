@@ -2,6 +2,7 @@ package productcontroller
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/fahmi-saputra/golang-restapi-gin/models"
 	"github.com/gin-gonic/gin"
@@ -48,8 +49,43 @@ func Create(c *gin.Context) {
 	
 }
 func Update(c *gin.Context) {
+
+	var product models.Product
+	id := c.Param("id")
+
+	if err := c.ShouldBindJSON(&product); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+			return
+	}
+	
+	if models.DB.Model(&product).Where("id = ?", id).Updates(&product).RowsAffected == 0 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Tidak Dapat Mengupdate Product"})
+			return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Diperbarui"})
+
+
+
 	
 }
 func Delete(c *gin.Context) {
+
+	var product models.Product
+
+	input := map[string]string{"id": "0"}
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Tidak Dapat Mengupdate Product"})
+			return
+	}
+
+	id, _ := strconv.ParseInt(input["id"], 10, 64)
+	if models.DB.Delete(&product, id).RowsAffected == 0 {
+		if models.DB.Model(&product).Where("id = ?", id).Updates(&product).RowsAffected == 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Tidak Dapat Menghapus Product"})
+				return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Data Berhasil Diphapus"})
+
+}
 	
 }
